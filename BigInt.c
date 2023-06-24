@@ -48,45 +48,52 @@ void printBigInt(BigInt k)
 
     printf("\n");
 }
+
+int compare(BigInt a, BigInt b)
+{
+    if(a.sign==1 && b.sign==1){
+
+        if (a.size < b.size)
+        {
+            return -1;
+        }
+
+        else if (a.size == b.size)
+        {
+            int i = a.size - 1;
+            while (i >= 0 && a.arr[i] == b.arr[i])
+            {
+                i--;
+            }
+            if (i == -1)
+            {
+                return 0;
+            }
+            if (a.arr[i] < b.arr[i])
+            {
+                return -1;
+            }
+        }
+        return 1;
+    }else if(a.sign==-1 && b.sign==-1){
+        a.sign=1;b.sign=1;
+        return compare(b,a);
+    }else if(a.sign==1){
+        return 1;
+    }else {
+        return -1;
+    }
+
+}
 BigInt add(BigInt a, BigInt b);
 BigInt subtract(BigInt a, BigInt b)
 {
     BigInt ans;
-    if (a.size < b.size)
-    {
-        if((b.sign == 1 && 1 == a.sign) ){
-            ans = subtract(b , a);
-            ans.sign = -1;
-        }else if(b.sign == -1 && -1 == a.sign){
-            ans = subtract(b , a);
-            ans.sign = 1;
-        }
-        else if( a.sign == 1 && b.sign==-1){
-            ans = add(a,b);
-            ans.sign =1;
-        }else{
-            ans = add(a,b);
-            ans.sign=-1;
-        }
+    if(compare(a,b)==-1){
+
+        ans = subtract(b , a);
+        ans.sign = -1;
         return ans;
-    }
-    else if (a.size == b.size)
-    {
-        int i = a.size - 1;
-        while (i >= 0 && a.arr[i] == b.arr[i])
-        {
-            i--;
-        }
-        if (i == -1)
-        {
-            ans.arr[0] = 0;
-            ans.size = 1;
-            return ans;
-        }
-        if (a.arr[i] < b.arr[i])
-        {
-            return subtract(b, a);
-        }
     }
     int z = 0;
     int j = 0;
@@ -122,32 +129,43 @@ BigInt subtract(BigInt a, BigInt b)
     ans.size = j + 1;
     return ans;
 }
-int compare(BigInt a, BigInt b)
+
+BigInt subtraction(BigInt a, BigInt b)
 {
-    if (a.size < b.size)
+    
+    BigInt ans;
+    if ((b.sign == 1 && 1 == a.sign))
     {
-        return -1;
+        ans = subtract(a,b);
     }
-
-    else if (a.size == b.size)
+    else if (b.sign == -1 && -1 == a.sign)
     {
-        int i = a.size - 1;
-        while (i >= 0 && a.arr[i] == b.arr[i])
-        {
-            i--;
+        a.sign=1;
+        b.sign=1;
+        ans = subtract(a,b);
+        if(compare(a , b)==1){
+            ans.sign = -1;
+        }else{
+            ans.sign = 1;
         }
-        if (i == -1)
-        {
-            return 0;
-        }
-        if (a.arr[i] < b.arr[i])
-        {
-            return -1;
-        }
+        
     }
-
-    return 1;
+    else if (a.sign == 1 && b.sign == -1)
+    {
+        b.sign = 1;
+        ans = add(a, b);
+        ans.sign = 1;
+    }
+    else
+    {
+        a.sign = 1;
+        ans = add(a, b);
+        ans.sign = -1;
+    }
+    return ans;
 }
+
+
 BigInt add(BigInt a, BigInt b)
 {
     int s1 = 0, s2 = 0;
@@ -159,6 +177,7 @@ BigInt add(BigInt a, BigInt b)
     }
     if (b.sign == -1)
     {
+        
         b.sign = 1;
         s2 = 1;
     }
@@ -170,19 +189,21 @@ BigInt add(BigInt a, BigInt b)
     }
     else if (s1)
     {
-        ans = subtract(a, b);
-        if (compare(a, b) > 0)
-        {
-            ans.sign = -1;
+        ans = subtraction(a, b);
+        if(compare(a,b)==1){
+            ans.sign=-1;
+        }else{
+            ans.sign=1;
         }
         return ans;
     }
     else if (s2)
     {
-        ans = subtract(a, b);
-        if (compare(a, b) < 0)
-        {
-            ans.sign = -1;
+        ans = subtraction(a, b);
+        if(compare(a,b)==-1){
+            ans.sign=-1;
+        }else{
+            ans.sign=1;
         }
         return ans;
     }
@@ -212,6 +233,7 @@ BigInt add(BigInt a, BigInt b)
         z++;
     }
     ans.size = z;
+    ans.sign=1;
     return ans;
 }
 
@@ -219,6 +241,16 @@ BigInt multiply(BigInt a, BigInt b)
 {
     BigInt ans;
     ans.size = 0;
+    int s1 = 0 , s2 = 0 ;
+    if(a.sign==-1 && b.sign==-1){
+        s1 = 1;
+        s2=1;
+    }
+    else if(a.sign==-1 || b.sign==-1){
+        s1=1;
+    }
+    a.sign=1;
+    b.sign=1;
     for (int i = 0; i < a.size; i++)
     {
         int c = 0;
@@ -251,6 +283,11 @@ BigInt multiply(BigInt a, BigInt b)
         }
         pro1.size = ind;
         ans = add(ans, pro1);
+    }
+    if(s1==1 && s2==0){
+        ans.sign=-1;
+    }else{
+        ans.sign=1;
     }
     return ans;
 }
@@ -310,13 +347,17 @@ BigInt fact(BigInt a)
     BigInt ans;
     ans.arr[0] = 1;
     ans.size = 1;
-    while (a.size != 1 || a.arr[0] != 0)
+    ans.sign =1;
+    while (a.size != 1 || a.arr[0] != 1)
     {
         ans = multiply(ans, a);
+
         BigInt b;
         b.arr[0] = 1;
         b.size = 1;
-        a = subtract(a, b);
+        b.sign=-1;
+
+        a = add(a, b);
     }
     return ans;
 }
@@ -325,6 +366,7 @@ BigInt power(BigInt a, BigInt b)
     BigInt one;
     one.arr[0] = 1;
     one.size = 1;
+    one.sign=1;
     int check = 0;
     if (a.sign == -1)
     {
@@ -343,8 +385,9 @@ BigInt power(BigInt a, BigInt b)
     BigInt temp = a;
     while (b.size != 1 || b.arr[0] != 1)
     {
+        one.sign=-1;
         temp = multiply(temp, a);
-        b = subtract(b, one);
+        b = add(b, one);
     }
     if (check && odd)
     {
@@ -360,6 +403,8 @@ BigInt convert(int a)
     {
         ans.sign = -1;
         a *= -1;
+    }else{
+        ans.sign=1;
     }
     while (a != 0)
     {
@@ -368,6 +413,7 @@ BigInt convert(int a)
         z++;
     }
     ans.size = z;
+
     return ans;
 }
 
@@ -378,7 +424,7 @@ BigInt squareRoot(BigInt a)
     BigInt k1;
     k1.size = 0;
 
-    for (int z = 0; z <= diff; z++)
+    for (int z = 0; z < diff; z++)
     {
         k1.arr[z] = 0;
         k1.size++;
@@ -389,7 +435,9 @@ BigInt squareRoot(BigInt a)
         k1.size++;
     }
     ans = k1;
+    ans.sign=1;
     BigInt result = multiply(ans, ans);
+    result.sign=1;
     if (compare(result, a) == 0)
     {
         return ans;
@@ -401,7 +449,7 @@ BigInt squareRoot(BigInt a)
     }
     while (compare(result, a) > 0)
     {
-        ans = subtract(ans, convert(100000));
+        ans = add(ans, convert(-100000));
         result = multiply(ans, ans);
     }
 
@@ -412,7 +460,7 @@ BigInt squareRoot(BigInt a)
     }
     while (compare(result, a) > 0)
     {
-        ans = subtract(ans, convert(1000));
+        ans = add(ans, convert(-1000));
         result = multiply(ans, ans);
     }
 
@@ -421,9 +469,10 @@ BigInt squareRoot(BigInt a)
         ans = add(ans, convert(100));
         result = multiply(ans, ans);
     }
+    
     while (compare(result, a) > 0)
-    {
-        ans = subtract(ans, convert(10));
+    {        
+        ans = add(ans, convert(-10));
         result = multiply(ans, ans);
     }
     while (compare(result, a) < 0)
@@ -449,6 +498,7 @@ int main()
         printf("Enter 5 to calculate factorial :\n");
         printf("Enter 6 to add two bigintegers :\n");
         printf("Enter 7 to subtract two bigintegers :\n");
+        printf("Enter 8 to multiply two bigintegers :\n");
         printf("Enter 0 to end the program :\n");
         scanf("%d", &a);
         switch (a)
@@ -491,7 +541,13 @@ int main()
             x = input();
             y = input();
             printf("ans = ");
-            printBigInt(subtract(x, y));
+            printBigInt(subtraction(x, y));
+            break;
+        case 8:
+            x = input();
+            y = input();
+            printf("ans = ");
+            printBigInt(multiply(x, y));
             break;
         }
 
