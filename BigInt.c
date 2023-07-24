@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#define SIZE 310
+#define SIZE 308
 
 typedef struct BigInteger
 {
